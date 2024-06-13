@@ -126,3 +126,4 @@ function getLearnerData(courseInfo, assignmentGroup, learnerSubmissions) {
   }
 }
 getLearnerData(COURSEINFO, ASSIGNMENTGROUP, LEARNERSUBMISSIONS);
+console.log("a small change...");
