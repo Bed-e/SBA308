@@ -1,10 +1,8 @@
-// The provided course information.
 const COURSEINFO = {
   id: 451,
   name: "Introduction to JavaScript",
 };
 
-// The provided assignment group.
 const ASSIGNMENTGROUP = {
   id: 12345,
   name: "Fundamentals of JavaScript",
@@ -32,7 +30,6 @@ const ASSIGNMENTGROUP = {
   ],
 };
 
-// The provided learner submission data.
 const LEARNERSUBMISSIONS = [
   {
     learner_id: 125,
@@ -77,53 +74,80 @@ const LEARNERSUBMISSIONS = [
 ];
 
 function inLearnerData(ID, learnerData) {
-  //console.log("inLearnerData(" + ID + "," + learnerData + ")");
-  //console.log("LEARNERDATA: " + learnerData);
   if (learnerData.length == 0) {
-    console.log("returns false");
     return false;
   } else {
     for (let i = 0; i < learnerData.length; i++) {
-      //console.log("learnerData.ID: " + learnerData[i].id + "\nID: " + ID);
       if (learnerData[i].id == ID) {
-        console.log("returning true");
         return true;
       }
     }
   }
-  console.log("returning false");
   return false;
 }
 
 function getLearnerData(courseInfo, assignmentGroup, learnerSubmissions) {
-  //
-  //   check if assignment group matches courseinfo
-  //
-  console.log("learnerSubmisssions: " + learnerSubmissions);
+  //console.log("learnerSubmissions: ", learnerSubmissions);
 
   let thisSub = {};
   let thisID = 0;
   let learnerData = [];
-  let thisLearner = {};
+  const cutoffDate = new Date("2024-06-13");
 
   for (let i = 0; i < learnerSubmissions.length; i++) {
     thisSub = learnerSubmissions[i];
     thisID = thisSub.learner_id;
-    //console.log(thisSub);
-    //console.log(thisID);
+
     if (!inLearnerData(thisID, learnerData)) {
       let thisLearner = {};
-      //add entry with new student id
       learnerData.push(thisLearner);
-      //   console.log(learnerData);
-
       thisLearner.id = thisID;
       thisLearner.avg = 0;
-      console.log(learnerData);
+      thisLearner.totalPointsPossible = 0; // Initialize totalPointsPossible
+      thisLearner.totalPointsEarned = 0; // Initialize totalPointsEarned
     }
-    //code that happens for each submission now that each learner gets added at their first appearance
-    console.log("thisSub: " + thisSub);
+
+    // Find the assignment with the matching id using a for loop
+    let thisAssignmentId = thisSub.assignment_id;
+    let maxPoints = 0;
+    let dueDate;
+
+    for (let j = 0; j < assignmentGroup.assignments.length; j++) {
+      if (assignmentGroup.assignments[j].id === thisAssignmentId) {
+        maxPoints = assignmentGroup.assignments[j].points_possible;
+        dueDate = new Date(assignmentGroup.assignments[j].due_at);
+        break;
+      }
+    }
+
+    // Skip this assignment if its due date is after the cutoff date
+    if (dueDate > cutoffDate) {
+      continue;
+    }
+
+    // Update the totalPointsPossible and totalPointsEarned for the learner
+    for (let k = 0; k < learnerData.length; k++) {
+      if (learnerData[k].id == thisID) {
+        learnerData[k].totalPointsPossible += maxPoints;
+        learnerData[k].totalPointsEarned += thisSub.submission.score;
+        // Add new property for the assignment score
+        learnerData[k][thisAssignmentId] = thisSub.submission.score / maxPoints;
+        break;
+      }
+    }
+
+    console.log("thisSub: ", thisSub);
   }
+
+  // Calculate the avg for each learner after all submissions are processed
+  for (let k = 0; k < learnerData.length; k++) {
+    if (learnerData[k].totalPointsPossible > 0) {
+      learnerData[k].avg =
+        learnerData[k].totalPointsEarned / learnerData[k].totalPointsPossible;
+    }
+  }
+
+  return learnerData;
 }
-getLearnerData(COURSEINFO, ASSIGNMENTGROUP, LEARNERSUBMISSIONS);
-console.log("a small change...");
+
+console.log(getLearnerData(COURSEINFO, ASSIGNMENTGROUP, LEARNERSUBMISSIONS));
